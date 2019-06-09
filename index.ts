@@ -1,9 +1,9 @@
-import path from 'path';
-import express from 'express';
-import serveIndex from 'serve-index';
-import { createServer } from 'http';
-import { Server } from 'colyseus';
-import { monitor } from '@colyseus/monitor';
+import path from "path";
+import express from "express";
+import serveIndex from "serve-index";
+import { createServer } from "http";
+import { Server } from "colyseus";
+import { monitor } from "@colyseus/monitor";
 
 // Import demo room handlers
 import { ChatRoom } from "./rooms/01-chat-room";
@@ -25,7 +25,7 @@ gameServer.register("chat", ChatRoom);
 // Register ChatRoom with initial options, as "chat_with_options"
 // onInit(options) will receive client join options + options registered here.
 gameServer.register("chat_with_options", ChatRoom, {
-    custom_options: "you can use me on Room#onInit"
+  custom_options: "you can use me on Room#onInit"
 });
 
 // Register StateHandlerRoom as "state_handler"
@@ -37,13 +37,13 @@ gameServer.register("auth", AuthRoom);
 // Register CreateOrJoin as "create_or_join"
 gameServer.register("create_or_join", CreateOrJoinRoom);
 
-app.use('/', express.static(path.join(__dirname, "static")));
-app.use('/', serveIndex(path.join(__dirname, "static"), {'icons': true}))
+app.use("/", express.static(path.join(__dirname, "static")));
+app.use("/", serveIndex(path.join(__dirname, "static"), { icons: true }));
 
 // (optional) attach web monitoring panel
-app.use('/colyseus', monitor(gameServer));
+app.use("/colyseus", monitor(gameServer));
 
-gameServer.onShutdown(function(){
+gameServer.onShutdown(function() {
   console.log(`game server is going down.`);
 });
 
@@ -54,4 +54,4 @@ gameServer.listen(port);
 //   process.exit(1);
 // });
 
-console.log(`Listening on http://localhost:${ port }`);
+console.log(`Listening on http://localhost:${port}`);

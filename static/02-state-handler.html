@@ -4,11 +4,17 @@
     <meta name="viewport" content="width=device-width" />
 
     <style>
-      body { font-family: Tahoma, Geneva, sans-serif; text-align: center; }
+      body {
+        font-family: Tahoma, Geneva, sans-serif;
+        text-align: center;
+      }
     </style>
 
     <!-- colyseus.js client -->
-    <script type="text/javascript" src="https://raw.githack.com/colyseus/colyseus.js/master/dist/colyseus.js"></script>
+    <script
+      type="text/javascript"
+      src="https://raw.githack.com/colyseus/colyseus.js/master/dist/colyseus.js"
+    ></script>
 
     <style type="text/css">
       .player {
@@ -20,32 +26,49 @@
         left: 0;
         top: 0;
       }
+      code {
+        display: block;
+        margin: 0 -60px 0 -60px;
+      }
     </style>
-
   </head>
   <body>
     <h1>
-      <a href="https://github.com/gamestdio/colyseus-examples"><img src="https://cdn.jsdelivr.net/gh/gamestdio/colyseus@master/media/header.png" height="100" alt="colyseus" /></a>
+      <a href="https://github.com/gamestdio/colyseus-examples"
+        ><img
+          src="https://cdn.jsdelivr.net/gh/gamestdio/colyseus@master/media/header.png"
+          height="100"
+          alt="colyseus"
+      /></a>
     </h1>
 
-    <p>This example shows how to use custom data structures in your room's state.</p>
+    <p>
+      This example shows how to use custom data structures in your room's state.
+    </p>
 
-    <strong>commands</strong><br>
+    <strong>commands</strong><br />
 
     <button onclick="up()">up</button>
     <button onclick="down()">down</button>
     <br />
     <button onclick="left()">left</button>
     <button onclick="right()">right</button>
+    <br />
+    <button onclick="addItem()">addItem</button>
+    <button onclick="moveItem()">moveItem</button>
 
     <script>
-      var host = window.document.location.host.replace(/:.*/, '');
+      var host = window.document.location.host.replace(/:.*/, "");
 
-      var client = new Colyseus.Client(location.protocol.replace("http", "ws") + host + (location.port ? ':' + location.port : ''));
+      var client = new Colyseus.Client(
+        location.protocol.replace("http", "ws") +
+          host +
+          (location.port ? ":" + location.port : "")
+      );
       var room = client.join("state_handler");
 
       var players = {};
-      var colors = ['red', 'green', 'yellow', 'blue', 'cyan', 'magenta'];
+      var colors = ["red", "green", "yellow", "blue", "cyan", "magenta"];
 
       room.onJoin.add(function() {
         // listen to patches coming from the server
@@ -54,57 +77,68 @@
           dom.className = "player";
           dom.style.left = player.x + "px";
           dom.style.top = player.y + "px";
-          dom.style.background = colors[Math.floor(Math.random() * colors.length)];
-          dom.innerHTML = "Player " + sessionId;
+          dom.style.background =
+            colors[Math.floor(Math.random() * colors.length)];
+          dom.innerHTML = `Player ${sessionId}`;
 
-          players[sessionId] = dom;
+          var itemsList = document.createElement("code");
+          itemsList.innerHTML = "{}";
+          dom.appendChild(itemsList);
+
+          players[sessionId] = { dom, itemsList };
           document.body.appendChild(dom);
-        }
+        };
 
         room.state.players.onRemove = function(player, sessionId) {
-          document.body.removeChild(players[sessionId]);
+          document.body.removeChild(players[sessionId].dom);
           delete players[sessionId];
-        }
+        };
 
-        room.state.players.onChange = function (player, sessionId) {
-          var dom = players[sessionId];
+        room.state.players.onChange = function(player, sessionId) {
+          const { dom, itemsList } = players[sessionId];
           dom.style.left = player.x + "px";
           dom.style.top = player.y + "px";
-        }
+          itemsList.innerHTML = player.items.map(
+            item => `{string:${item.string}, int8:${item.int8}}`
+          );
+        };
       });
 
-      window.addEventListener("keydown", function (e) {
-        console.log(e.which);
+      window.addEventListener("keydown", function(e) {
+        // console.log(e.which);
         if (e.which === 38) {
           up();
-
         } else if (e.which === 39) {
           right();
-
         } else if (e.which === 40) {
           down();
-
         } else if (e.which === 37) {
           left();
         }
       });
 
-      function up () {
+      function up() {
         room.send({ y: -1 });
       }
 
-      function right () {
+      function right() {
         room.send({ x: 1 });
       }
 
-      function down () {
-        room.send({ y: 1 })
+      function down() {
+        room.send({ y: 1 });
       }
 
-      function left () {
-        room.send({ x: -1 })
+      function left() {
+        room.send({ x: -1 });
       }
 
+      function addItem() {
+        room.send({ cmd: "addItem" });
+      }
+      function moveItem() {
+        room.send({ cmd: "moveItem" });
+      }
     </script>
   </body>
 </html>
