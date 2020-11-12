@@ -37,6 +37,26 @@
     <br />
     <button onclick="left()">left</button>
     <button onclick="right()">right</button>
+    <hr/>
+    <pre>To reproduce my ArraySchema issue:
+1. Add any number.
+   New button with that number should appear.
+   Note it's index key is zero
+2. Remove that entry, just click the button.
+   The list is empty now.
+3. Add any new number.
+   NOTE: its KEY is now [1] instead of [0].
+   You can also observe console logs here (browser) and on server.
+
+Client-side: `onAdd` reports that its got new item at `key` 1,
+but being an only item in this array, it should be at key 0.
+    </pre>
+    <p>
+        <label>Add number: <input id="addNumberInput" type="number"></label>
+        <button onclick="addNumber()">ADD</button>
+    </p>
+    <p>Added numbers, click one to remove it:</p>
+    <p id="arrayTestContents">[key] = value ...</p>
 
     <script>
         var host = window.document.location.host.replace(/:.*/, '');
@@ -47,7 +67,24 @@
             room = room_instance
 
             var players = {};
+            var arrayTest = [];
             var colors = ['red', 'green', 'yellow', 'blue', 'cyan', 'magenta'];
+
+            // ArraySchema number testing
+            room.state.arrayTest.onAdd = function (number, key) {
+                arrayTest[key] = number;
+                console.log(`++ Number "${number}" added at key [${key}]`);
+                console.log('\tarray contents:', arrayTest);
+
+                updateArrayTestContents(arrayTest);
+            }
+            room.state.arrayTest.onRemove = function (number, key) {
+                arrayTest.splice(key, 1);
+                console.log(`-- Number "${number}" removed from key [${key}]`);
+                console.log('\tarray contents:', arrayTest);
+
+                updateArrayTestContents(arrayTest);
+            }
 
             // listen to patches coming from the server
             room.state.players.onAdd = function (player, sessionId) {
@@ -110,6 +147,24 @@
             room.send("move", { x: -1 })
         }
 
+        function addNumber() {
+            room.send("addNumber", Number(addNumberInput.value));
+        }
+
+        function removeNumber(index) {
+            room.send("removeNumber", index)
+        }
+
+        function updateArrayTestContents(arrayTest) {
+            arrayTestContents.innerHTML = '';
+            arrayTest.forEach((number, index) => {
+                const entry = document.createElement('button');
+                entry.onclick = removeNumber.bind(null, index);
+                entry.innerText = `[${index}] = ${number}`;
+
+                arrayTestContents.appendChild(entry);
+            })
+        }
 
     </script>
   </body>
